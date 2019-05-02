@@ -23,7 +23,7 @@ import glob
 
 MAX_INPUT_DIM = 5000.0
 
-def overlay_bounding_boxes(raw_img, refined_bboxes, lw,count):
+def overlay_bounding_boxes(raw_img, refined_bboxes, lw):
   """Overlay bounding boxes of face on images.
     Args:
       raw_img:
@@ -76,7 +76,6 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.01, nms_thres
   Returns:
     None.
   """
-  count = 0
   # placeholder of input images. Currently batch size of one is supported.
   x = tf.placeholder(tf.float32, [1, None, None, 3]) # n, h, w, c
 
@@ -125,13 +124,19 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.01, nms_thres
 
       # initialize output
       bboxes = np.empty(shape=(0, 5))
+      #i=0
 
       # process input at different scales
       for s in scales:
         print("Processing {} at scale {:.4f}".format(fname, s))
         img = cv2.resize(raw_img_f, (0, 0), fx=s, fy=s, interpolation=cv2.INTER_LINEAR)
+
+        #i+=1
+        #imgw = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        #cv2.imwrite(os.path.join('/home/sidhu/Desktop/Project/CrowdCount/images/ir', 'fname%s.jpg' %i), imgw)
+
         img = img - average_image
-        img = img[np.newaxis, :]
+        img = img[np.newaxis, :]  
 
         # we don't run every template on every scale ids of templates to ignore
         tids = list(range(4, 12)) + ([] if s <= 1.0 else list(range(18, 25)))
@@ -148,6 +153,7 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.01, nms_thres
         def _calc_bounding_boxes():
           # threshold for detection
           _, fy, fx, fc = np.where(prob_cls_tf > prob_thresh)
+          print(_,fy,fx,fc)
 
           # interpret heatmap into bounding boxes
           cy = fy * 8 - 1
@@ -189,7 +195,10 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.01, nms_thres
                                                    max_output_size=bboxes.shape[0], iou_threshold=nms_thresh)
       refind_idx = sess.run(refind_idx)
       refined_bboxes = bboxes[refind_idx]
-      overlay_bounding_boxes(raw_img, refined_bboxes, lw,count)
+      overlay_bounding_boxes(raw_img, refined_bboxes, lw)
+
+      #tmb_bboxes
+      #overlay_bounding_boxes(raw_img, tmp_bboxes, lw)
 
       if display:
         # plt.axis('off')

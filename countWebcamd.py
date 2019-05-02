@@ -52,7 +52,7 @@ def overlay_bounding_boxes(raw_img, refined_bboxes, lw):
     _r = [int(x) for x in r[:4]]
     cv2.rectangle(raw_img, (_r[0], _r[1]), (_r[2], _r[3]), rect_color, _lw)
     count= count +1
-  print(count)
+  print('Total persons present',count)
     
     
 def evaluate(weight_file_path,prob_thresh=0.1, nms_thresh=0.1, lw=3, display=False):
@@ -102,9 +102,17 @@ def evaluate(weight_file_path,prob_thresh=0.1, nms_thresh=0.1, lw=3, display=Fal
     #for filename in filenames:
       #fname = filename.split(os.sep)[-1]
     video_capture = cv2.VideoCapture('/home/sidhu/Desktop/Project/CountInVideo/tr.mp4')
+    skip_frame = True
     while True:
       # Capture frame-by-frame
       ret, frame = video_capture.read()
+      
+      #if skip_frame:
+      #  skip_frame = not skip_frame
+      #  print('skip')
+      #  continue
+      #print('not skip')
+      
       #raw_img = cv2.imread(filename)
       raw_img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
       raw_img_f = raw_img.astype(np.float32)
