@@ -107,11 +107,11 @@ def evaluate(weight_file_path,prob_thresh=0.1, nms_thresh=0.1, lw=3, display=Fal
       # Capture frame-by-frame
       ret, frame = video_capture.read()
       
-      #if skip_frame:
-      #  skip_frame = not skip_frame
-      #  print('skip')
-      #  continue
-      #print('not skip')
+      skip_frame = not skip_frame
+      if skip_frame:
+        print('skip')
+        continue
+      print('not skip')
       
       #raw_img = cv2.imread(filename)
       raw_img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

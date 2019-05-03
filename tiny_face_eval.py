@@ -54,7 +54,7 @@ def overlay_bounding_boxes(raw_img, refined_bboxes, lw):
   print(count)
     
     
-def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.01, nms_thresh=0.01, lw=3, display=False):
+def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.2, nms_thresh=0.01, lw=3, display=False):
   """Detect faces in images.
   Args:
     prob_thresh:
@@ -116,7 +116,7 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.01, nms_thres
         scales_down = pl.frange(min_scale, 0, 1.)
         scales_up = pl.frange(0.5, max_scale, 0.5)
         scales_pow = np.hstack((scales_down, scales_up))
-        scales = np.power(2.0, scales_pow)
+        scales = np.power(3.0, scales_pow)
         return scales
 
       scales = _calc_scales()
@@ -124,7 +124,7 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.01, nms_thres
 
       # initialize output
       bboxes = np.empty(shape=(0, 5))
-      #i=0
+      i=0
 
       # process input at different scales
       for s in scales:
@@ -153,7 +153,7 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.01, nms_thres
         def _calc_bounding_boxes():
           # threshold for detection
           _, fy, fx, fc = np.where(prob_cls_tf > prob_thresh)
-          print(_,fy,fx,fc)
+          #print(_,fy,fx,fc)
 
           # interpret heatmap into bounding boxes
           cy = fy * 8 - 1
@@ -214,9 +214,9 @@ def main():
 
   argparse = ArgumentParser()
   argparse.add_argument('--weight_file_path', type=str, help='Pretrained weight file.', default="/home/sidhu/Desktop/Project/Tiny_Faces_in_Tensorflow/hr_res101.pickle")
-  argparse.add_argument('--data_dir', type=str, help='Image data directory.', default="/home/sidhu/Desktop/Project/Tiny_Faces_in_Tensorflow/images")
-  argparse.add_argument('--output_dir', type=str, help='Output directory for images with faces detected.', default="/home/sidhu/Desktop/Project/Tiny_Faces_in_Tensorflow/output")
-  argparse.add_argument('--prob_thresh', type=float, help='The threshold of detection confidence(default: 0.5).', default=0.3)
+  argparse.add_argument('--data_dir', type=str, help='Image data directory.', default="/home/sidhu/Desktop/Project/CrowdCount/testImages")
+  argparse.add_argument('--output_dir', type=str, help='Output directory for images with faces detected.', default="/home/sidhu/Desktop/Project/CrowdCount/output")
+  argparse.add_argument('--prob_thresh', type=float, help='The threshold of detection confidence(default: 0.5).', default=0.1)
   argparse.add_argument('--nms_thresh', type=float, help='The overlap threshold of non maximum suppression(default: 0.1).', default=0.1)
   argparse.add_argument('--line_width', type=int, help='Line width of bounding boxes(0: auto).', default=3)
   argparse.add_argument('--display', type=bool, help='Display each image on window.', default=False)
