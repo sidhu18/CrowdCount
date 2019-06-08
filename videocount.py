@@ -5,16 +5,15 @@ from __future__ import print_function
 
 import tensorflow as tf
 import tiny_face_model
+import matplotlib.pyplot as plt 
 import util
 from argparse import ArgumentParser
 import cv2
 import scipy.io
 import numpy as np
-import matplotlib.pyplot as plt
 import cv2
 import pickle
 import sys 
-
 import pylab as pl
 import time
 import os
@@ -24,7 +23,7 @@ import glob
 
 MAX_INPUT_DIM = 5000.0
 
-def overlay_bounding_boxes(raw_img, refined_bboxes, lw):
+def overlay_bounding_boxes(raw_img, refined_bboxes, lw, y_arr):
   """Overlay bounding boxes of face on images.
     Args:
       raw_img:
@@ -37,6 +36,7 @@ def overlay_bounding_boxes(raw_img, refined_bboxes, lw):
     Returns:
       None.
   """
+
   count = 0
   # Overlay bounding boxes on an image with the color based on the confidence.
   for r in refined_bboxes:
@@ -52,7 +52,9 @@ def overlay_bounding_boxes(raw_img, refined_bboxes, lw):
     _r = [int(x) for x in r[:4]]
     cv2.rectangle(raw_img, (_r[0], _r[1]), (_r[2], _r[3]), rect_color, _lw)
     count= count +1
+  
   print('Total persons present',count)
+  y_arr.append(count)
     
     
 def evaluate(weight_file_path,prob_thresh=0.1, nms_thresh=0.1, lw=3, display=False):
@@ -101,18 +103,22 @@ def evaluate(weight_file_path,prob_thresh=0.1, nms_thresh=0.1, lw=3, display=Fal
 
     #for filename in filenames:
       #fname = filename.split(os.sep)[-1]
-    video_capture = cv2.VideoCapture('/home/sidhu/Desktop/Project/CountInVideo/tr.mp4')
+    video_capture = cv2.VideoCapture('/home/sidhu/Desktop/Crowd_Count/input/video/poh.mp4')
     skip_frame = True
+    f_no = 0
+    x_arr = []
+    y_arr = []
     while True:
       # Capture frame-by-frame
       ret, frame = video_capture.read()
-      
       skip_frame = not skip_frame
-      if skip_frame:
-        print('skip')
+      if not skip_frame:
+        #print('skip')
         continue
-      print('not skip')
-      
+      #print('not skip')
+      f_no = f_no +1
+      fsec = f_no/24
+      x_arr.append(fsec)
       #raw_img = cv2.imread(filename)
       raw_img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
       raw_img_f = raw_img.astype(np.float32)
@@ -193,7 +199,9 @@ def evaluate(weight_file_path,prob_thresh=0.1, nms_thresh=0.1, lw=3, display=Fal
                                                    max_output_size=bboxes.shape[0], iou_threshold=nms_thresh)
       refind_idx = sess.run(refind_idx)
       refined_bboxes = bboxes[refind_idx]
-      overlay_bounding_boxes(raw_img, refined_bboxes, lw)
+      overlay_bounding_boxes(raw_img, refined_bboxes, lw, y_arr)
+
+      #print(x_arr,y_arr)
 
       
       # save image with bounding boxes
@@ -206,18 +214,24 @@ def evaluate(weight_file_path,prob_thresh=0.1, nms_thresh=0.1, lw=3, display=Fal
     # When everything is done, release the capture
     video_capture.release()
     cv2.destroyAllWindows()
+    plt.plot(x_arr, y_arr)
+    plt.xlabel('Time (sec)')
+    plt.ylabel('Count')
+    plt.savefig('output/analytics/fig.png')
 
 #weight_file_path='/Users/apple/Downloads/Tiny_Faces_in_Tensorflow-master/mat2tf.pkl'
 #evaluate(weight_file_path)
 def main():
 
   argparse = ArgumentParser()
-  argparse.add_argument('--weight_file_path', type=str, help='Pretrained weight file.', default="/home/sidhu/Desktop/Project/CountInVideo/Tiny_Faces_in_Tensorflow/hr_res101.pickle")
+  argparse.add_argument('--weight_file_path', type=str, help='Pretrained weight file.', default="model/hr_res101.pickle")
 
   args = argparse.parse_args()
 
   # check arguments
   assert os.path.exists(args.weight_file_path), "weight file: " + args.weight_file_path + " not found."
+  
+  
 
   with tf.Graph().as_default():
     evaluate(

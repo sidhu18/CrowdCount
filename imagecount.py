@@ -53,7 +53,6 @@ def overlay_bounding_boxes(raw_img, refined_bboxes, lw):
     count = count + 1
   print(count)
     
-    
 def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.2, nms_thresh=0.01, lw=3, display=False):
   """Detect faces in images.
   Args:
@@ -112,11 +111,15 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.2, nms_thresh
         raw_h, raw_w = raw_img.shape[0], raw_img.shape[1]
         min_scale = min(np.floor(np.log2(np.max(clusters_w[normal_idx] / raw_w))),
                         np.floor(np.log2(np.max(clusters_h[normal_idx] / raw_h))))
+
+
         max_scale = min(1.0, -np.log2(max(raw_h, raw_w) / MAX_INPUT_DIM))
-        scales_down = pl.frange(min_scale, 0, 1.)
+
+        scales_down = pl.frange((min_scale), 0, 1.)
         scales_up = pl.frange(0.5, max_scale, 0.5)
         scales_pow = np.hstack((scales_down, scales_up))
-        scales = np.power(3.0, scales_pow)
+
+        scales = np.power(2.0, scales_pow)
         return scales
 
       scales = _calc_scales()
@@ -130,10 +133,6 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.2, nms_thresh
       for s in scales:
         print("Processing {} at scale {:.4f}".format(fname, s))
         img = cv2.resize(raw_img_f, (0, 0), fx=s, fy=s, interpolation=cv2.INTER_LINEAR)
-
-        #i+=1
-        #imgw = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-        #cv2.imwrite(os.path.join('/home/sidhu/Desktop/Project/CrowdCount/images/ir', 'fname%s.jpg' %i), imgw)
 
         img = img - average_image
         img = img[np.newaxis, :]  
@@ -153,7 +152,7 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.2, nms_thresh
         def _calc_bounding_boxes():
           # threshold for detection
           _, fy, fx, fc = np.where(prob_cls_tf > prob_thresh)
-          #print(_,fy,fx,fc)
+          
 
           # interpret heatmap into bounding boxes
           cy = fy * 8 - 1
@@ -195,6 +194,7 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.2, nms_thresh
                                                    max_output_size=bboxes.shape[0], iou_threshold=nms_thresh)
       refind_idx = sess.run(refind_idx)
       refined_bboxes = bboxes[refind_idx]
+
       overlay_bounding_boxes(raw_img, refined_bboxes, lw)
 
       #tmb_bboxes
@@ -213,12 +213,12 @@ def evaluate(weight_file_path, data_dir, output_dir, prob_thresh=0.2, nms_thresh
 def main():
 
   argparse = ArgumentParser()
-  argparse.add_argument('--weight_file_path', type=str, help='Pretrained weight file.', default="/home/sidhu/Desktop/Project/Tiny_Faces_in_Tensorflow/hr_res101.pickle")
-  argparse.add_argument('--data_dir', type=str, help='Image data directory.', default="/home/sidhu/Desktop/Project/CrowdCount/testImages")
-  argparse.add_argument('--output_dir', type=str, help='Output directory for images with faces detected.', default="/home/sidhu/Desktop/Project/CrowdCount/output")
-  argparse.add_argument('--prob_thresh', type=float, help='The threshold of detection confidence(default: 0.5).', default=0.1)
+  argparse.add_argument('--weight_file_path', type=str, help='Pretrained weight file.', default="model/hr_res101.pickle")
+  argparse.add_argument('--data_dir', type=str, help='Image data directory.', default="input/images")
+  argparse.add_argument('--output_dir', type=str, help='Output directory for images with faces detected.', default="output/images")
+  argparse.add_argument('--prob_thresh', type=float, help='The threshold of detection confidence(default: 0.5).', default=0.3)
   argparse.add_argument('--nms_thresh', type=float, help='The overlap threshold of non maximum suppression(default: 0.1).', default=0.1)
-  argparse.add_argument('--line_width', type=int, help='Line width of bounding boxes(0: auto).', default=3)
+  argparse.add_argument('--line_width', type=int, help='Line width of bounding boxes(0: auto).', default=1)
   argparse.add_argument('--display', type=bool, help='Display each image on window.', default=False)
 
   args = argparse.parse_args()

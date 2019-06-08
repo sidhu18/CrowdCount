@@ -1,6 +1,5 @@
 # CrowdCount
-/testImages
-/images
+/input
+/model
 /output
-/test
 /__pycache__
